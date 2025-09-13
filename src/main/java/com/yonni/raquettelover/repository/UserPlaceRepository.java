@@ -1,6 +1,7 @@
 package com.yonni.raquettelover.repository;
 
 import com.yonni.raquettelover.entity.Place;
+import com.yonni.raquettelover.entity.PlaceUserId;
 import com.yonni.raquettelover.entity.User;
 import com.yonni.raquettelover.entity.UserPlace;
 
@@ -10,7 +11,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface UserPlaceRepository extends JpaRepository<UserPlace, Long> {
+public interface UserPlaceRepository extends JpaRepository<UserPlace, PlaceUserId> {
     boolean existsByUserAndPlace(User user, Place place);
     boolean existsByUserIdAndPlaceId(Long userId, Long placeId);
     
