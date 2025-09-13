@@ -1,0 +1,50 @@
+package com.yonni.raquettelover.controller.advice;
+
+import com.yonni.raquettelover.dto.ApiError;
+import com.yonni.raquettelover.dto.ApiResponse;
+import com.yonni.raquettelover.exception.AccessDeniedExceptionCustom;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    // 🔸 Gestion des erreurs de validation (@Valid)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiResponse<Object>> handleValidationException(MethodArgumentNotValidException ex) {
+        List<ApiError.FieldError> fieldErrors = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(err -> new ApiError.FieldError(err.getField(), err.getDefaultMessage()))
+                .collect(Collectors.toList());
+
+        ApiError apiError = new ApiError(
+                "INVALID_DATA",
+                "Certains champs sont invalides",
+                fieldErrors);
+
+        return ResponseEntity.badRequest().body(ApiResponse.error(apiError));
+    }
+
+    // exceptions Access denied
+    @ExceptionHandler(AccessDeniedExceptionCustom.class)
+    public ResponseEntity<ApiResponse<Object>> handleAccessDenied(AccessDeniedExceptionCustom ex) {
+        ApiError apiError = new ApiError("FORBIDDEN", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.error(apiError));
+    }
+
+    // 🔸 Gestion des autres erreurs globales
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse<Object>> handleException(Exception ex) {
+        ApiError apiError = new ApiError("SERVER_ERROR", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error(apiError));
+    }
+}

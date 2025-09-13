@@ -1,0 +1,42 @@
+
+
+services:
+  app:
+    build: .
+    # Utilisation du réseau hôte pour ce container (désactive la gestion de ports par Docker)
+    # Attention : fonctionne uniquement sous Linux
+    network_mode: "host"
+    
+    # Redirection des ports (inutile si network_mode: "host" est activé)
+    ports:
+      - "8080:8080"
+      
+    depends_on:
+      - db
+      
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/raquettelover
+      - SPRING_DATASOURCE_USERNAME=example
+      - SPRING_DATASOURCE_PASSWORD=password
+    
+    # Volumes commentés, à activer si vous souhaitez monter le répertoire courant
+    # volumes:
+    #   - .:/app
+
+  db:
+    image: postgres:15
+    restart: always
+    
+    environment:
+      POSTGRES_DB: raquettelover
+      POSTGRES_USER: example
+      POSTGRES_PASSWORD: password
+      
+    ports:
+      - "5432:5432"
+      
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+volumes:
+  db-data:
