@@ -30,3 +30,4 @@ public class CourtTypeController {
                 return ResponseEntity.ok(ApiResponse.success(courtTypes, "Liste des types de courts"));
         }
 }
+
