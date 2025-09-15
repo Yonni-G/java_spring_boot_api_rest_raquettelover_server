@@ -1,6 +1,7 @@
 package com.yonni.raquettelover.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,7 +35,7 @@ public class PlaceServiceImpl implements PlaceService {
     private final UserService userService;
 
     @Override
-    public void addPlace(PlaceCreateDto dto) {
+    public void createPlace(PlaceCreateDto dto) {
 
         // un admin peut créer un lieu pour un autre utilisateur
         // mais un manager ne le peut que pour lui-même
@@ -59,6 +60,36 @@ public class PlaceServiceImpl implements PlaceService {
     }
 
     @Override
+    public void updatePlace(PlaceCreateDto dto, Long placeId) {
+
+        // un admin peut modifier un lieu pour un autre utilisateur
+        // mais un manager ne le peut que pour lui-même
+
+        CustomUserDetails principal = SecurityUtils.getCurrentUser();
+        if (userService.hasRoleManager(principal)) {
+            if (!dto.userId().equals(principal.getId())) {
+                // on envoit une response entity avec une response error
+                throw new AccessDeniedExceptionCustom(
+                        "Accès refusé : Vous ne pas modifier un lieu pour quelqu'un d'autre que vous");
+            }
+        }
+        // utilisateur
+        User user = userRepository.findById(dto.userId())
+                .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
+
+        // On va chercher la Place
+        Place place = placeRepository.findById(
+                placeId)
+                 .orElseThrow(() -> new EntityNotFoundException("Place introuvable"));
+        
+        place.setName(dto.name());
+        place.setAddress(dto.address());
+        Place placeAdded = placeRepository.save(place);
+
+        userPlaceRepository.save(new UserPlace(user, placeAdded));
+    }
+
+    @Override
     public List<PlaceDto> getPlaces() {
         CustomUserDetails principal = SecurityUtils.getCurrentUser();
         List<Place> places;
@@ -72,8 +103,21 @@ public class PlaceServiceImpl implements PlaceService {
         }
 
         return places.stream()
-                .map(place -> new PlaceDto(place.getId(), place.getName(), place.getAddress(), place.getCreatedAt()))
+                .map(this::toDto)
                 .toList();
+    }
+
+    private PlaceDto toDto(Place place) {
+        return new PlaceDto(
+                place.getId(),
+                place.getName(),
+                place.getAddress(),
+                place.getCreatedAt());
+    }
+
+    public Optional<PlaceDto> getById(Long id) {
+        return placeRepository.findById(id)
+                .map(this::toDto);
     }
 
 }
