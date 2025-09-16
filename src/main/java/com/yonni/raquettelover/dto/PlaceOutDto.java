@@ -2,7 +2,7 @@ package com.yonni.raquettelover.dto;
 
 import java.time.LocalDateTime;
 
-public record PlaceDto(
+public record PlaceOutDto(
         Long id,
         String name,
         String address,

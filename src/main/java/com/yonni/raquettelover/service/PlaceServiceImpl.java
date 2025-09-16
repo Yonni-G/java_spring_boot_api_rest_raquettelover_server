@@ -10,12 +10,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.yonni.raquettelover.dto.ApiResponse;
-import com.yonni.raquettelover.dto.PlaceCreateDto;
-import com.yonni.raquettelover.dto.PlaceDto;
+import com.yonni.raquettelover.dto.PlaceInDto;
+import com.yonni.raquettelover.dto.PlaceOutDto;
 import com.yonni.raquettelover.entity.Place;
 import com.yonni.raquettelover.entity.User;
 import com.yonni.raquettelover.entity.UserPlace;
 import com.yonni.raquettelover.exception.AccessDeniedExceptionCustom;
+import com.yonni.raquettelover.mapper.PlaceMapper;
 import com.yonni.raquettelover.repository.PlaceRepository;
 import com.yonni.raquettelover.repository.UserPlaceRepository;
 import com.yonni.raquettelover.repository.UserRepository;
@@ -35,7 +36,7 @@ public class PlaceServiceImpl implements PlaceService {
     private final UserService userService;
 
     @Override
-    public void createPlace(PlaceCreateDto dto) {
+    public void createPlace(PlaceInDto dto) {
 
         // un admin peut créer un lieu pour un autre utilisateur
         // mais un manager ne le peut que pour lui-même
@@ -60,7 +61,7 @@ public class PlaceServiceImpl implements PlaceService {
     }
 
     @Override
-    public void updatePlace(PlaceCreateDto dto, Long placeId) {
+    public void updatePlace(PlaceInDto dto, Long placeId) {
 
         // un admin peut modifier un lieu pour un autre utilisateur
         // mais un manager ne le peut que pour lui-même
@@ -90,7 +91,7 @@ public class PlaceServiceImpl implements PlaceService {
     }
 
     @Override
-    public List<PlaceDto> getPlaces() {
+    public List<PlaceOutDto> getPlaces() {
         CustomUserDetails principal = SecurityUtils.getCurrentUser();
         List<Place> places;
 
@@ -102,22 +103,15 @@ public class PlaceServiceImpl implements PlaceService {
             throw new AccessDeniedExceptionCustom("Accès refusé : Vous n'avez pas suffisamment de droits");
         }
 
+        // on transforme nos places en dto
         return places.stream()
-                .map(this::toDto)
+                .map(PlaceMapper::toDto)
                 .toList();
     }
 
-    private PlaceDto toDto(Place place) {
-        return new PlaceDto(
-                place.getId(),
-                place.getName(),
-                place.getAddress(),
-                place.getCreatedAt());
-    }
-
-    public Optional<PlaceDto> getById(Long id) {
-        return placeRepository.findById(id)
-                .map(this::toDto);
-    }
+    // public Optional<PlaceOutDto> getById(Long id) {
+    //     return placeRepository.findById(id)
+    //             .map(this::toDto);
+    // }
 
 }

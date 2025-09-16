@@ -4,7 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.yonni.raquettelover.dto.CourtDto;
+import com.yonni.raquettelover.dto.CourtInDto;
 import com.yonni.raquettelover.entity.Court;
 import com.yonni.raquettelover.entity.Place;
 import com.yonni.raquettelover.entity.User;
@@ -27,18 +27,18 @@ public class CourtServiceImpl implements CourtService {
     private final UserService userService;
 
     @Override
-    public void addCourt(CourtDto dto) {
+    public void createCourt(CourtInDto dto, Long placeId) {
 
         CustomUserDetails principal = SecurityUtils.getCurrentUser();
 
-        Place place = placeRepository.findById(dto.placeId())
+        Place place = placeRepository.findById(placeId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Lieu non trouvé"));
 
         // seuls les admins ou managers du lieu peuvent ajouter un terrain
         // si l'utilisateur est manager, on vérifie qu'il gère bien le lieu
 
         if (userService.hasRoleManager(principal)
-                && !userPlaceRepository.existsByUserIdAndPlaceId(principal.getId(), dto.placeId())) {
+                && !userPlaceRepository.existsByUserIdAndPlaceId(principal.getId(), placeId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Accès refusé");
         }
 

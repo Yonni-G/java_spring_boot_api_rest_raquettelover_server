@@ -1,5 +1,8 @@
 package com.yonni.raquettelover.controller;
 
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,9 +18,12 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.yonni.raquettelover.dto.ApiError;
 import com.yonni.raquettelover.dto.ApiResponse;
-import com.yonni.raquettelover.dto.PlaceCreateDto;
-import com.yonni.raquettelover.dto.PlaceDto;
+import com.yonni.raquettelover.dto.PlaceInDto;
+import com.yonni.raquettelover.dto.PlaceOutDto;
+import com.yonni.raquettelover.entity.Place;
+import com.yonni.raquettelover.mapper.PlaceMapper;
 import com.yonni.raquettelover.repository.PlaceRepository;
+import com.yonni.raquettelover.security.ValidationUtil;
 import com.yonni.raquettelover.service.PlaceService;
 
 import jakarta.validation.Valid;
@@ -30,25 +36,31 @@ import lombok.RequiredArgsConstructor;
 public class PlaceController {
 
     private final PlaceService placeService;
+    private final PlaceRepository placeRepository;
 
     @PostMapping
-    public ResponseEntity<?> createPlace(@RequestBody @Valid PlaceCreateDto dto,
+    public ResponseEntity<?> createPlace(@RequestBody @Valid PlaceInDto dto,
             BindingResult bindingResult) {
+
         if (bindingResult.hasErrors()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Données de création invalides");
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error(ValidationUtil.buildValidationError(bindingResult)));
         }
         placeService.createPlace(dto);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(null, "Création effectuée avec succès"));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<?> updatePlace(@PathVariable Long id, @RequestBody @Valid PlaceCreateDto dto,
+    @PutMapping("/{placeId}")
+    public ResponseEntity<?> updatePlace(@PathVariable Long placeId, @RequestBody @Valid PlaceInDto dto,
             BindingResult bindingResult) {
+
         if (bindingResult.hasErrors()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Données de modification invalides");
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error(ValidationUtil.buildValidationError(bindingResult)));
         }
-        placeService.updatePlace(dto, id);
+        
+        placeService.updatePlace(dto, placeId);
 
         // retourner 204 No Content pour indiquer succès sans corps
         return ResponseEntity.ok().body(ApiResponse.success(null, "Modifications enregistrées avec succès"));
@@ -58,13 +70,16 @@ public class PlaceController {
     // (pour un admin, ce sera tous les lieux)
     @GetMapping
     public ResponseEntity<?> getPlaces() {
+        List<PlaceOutDto> places = placeService.getPlaces();
         return ResponseEntity
-                .ok(ApiResponse.success(placeService.getPlaces(), "Liste des lieux récupérée avec succès"));
+                .ok(ApiResponse.success(places, "Liste des lieux récupérée avec succès"));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<?> findById(@PathVariable Long id) {
-        return placeService.getById(id)
+    @GetMapping("/{placeId}")
+    public ResponseEntity<?> findById(@PathVariable Long placeId) {
+        Optional<Place> place = placeRepository.findById(placeId);
+        return place
+                .map(PlaceMapper::toDto)
                 .map(dto -> ResponseEntity.ok(ApiResponse.success(dto, "Lieu récupéré avec succès")))
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(ApiResponse.error(new ApiError("PLACE_NOT_FOUND", "Lieu non trouvé"))));
