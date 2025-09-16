@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.yonni.raquettelover.dto.ApiResponse;
 import com.yonni.raquettelover.dto.CourtTypeOutDto;
 import com.yonni.raquettelover.enumeration.CourtType;
+import com.yonni.raquettelover.mapper.CourtTypeMapper;
 
 import lombok.RequiredArgsConstructor;
 
@@ -24,7 +25,7 @@ public class CourtTypeController {
         @GetMapping
         public ResponseEntity<ApiResponse<List<CourtTypeOutDto>>> getCourtTypes() {
                 List<CourtTypeOutDto> courtTypes = Arrays.stream(CourtType.values())
-                        .map(ct -> new CourtTypeOutDto(ct.name(), ct.getLabel(), ct.getMinPlayers()))
+                        .map(CourtTypeMapper::toDto)
                         .toList();                
 
                 return ResponseEntity.ok(ApiResponse.success(courtTypes, "Liste des types de courts"));

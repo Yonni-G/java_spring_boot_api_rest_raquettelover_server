@@ -37,7 +37,7 @@ public class CourtController {
 
         courtService.createCourt(dto, placeId);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(null, "Terrain créé avec succès"));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(null, "Court créé avec succès"));
     }
 
 }

@@ -8,6 +8,7 @@ import com.yonni.raquettelover.dto.CourtInDto;
 import com.yonni.raquettelover.entity.Court;
 import com.yonni.raquettelover.entity.Place;
 import com.yonni.raquettelover.entity.User;
+import com.yonni.raquettelover.exception.AccessDeniedExceptionCustom;
 import com.yonni.raquettelover.repository.CourtRepository;
 import com.yonni.raquettelover.repository.PlaceRepository;
 import com.yonni.raquettelover.repository.UserPlaceRepository;
@@ -35,11 +36,17 @@ public class CourtServiceImpl implements CourtService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Lieu non trouvé"));
 
         // seuls les admins ou managers du lieu peuvent ajouter un terrain
+        // si l'utilisateur est admin, on vérifie que le dto.userId() est bien propriétaire du lieu
         // si l'utilisateur est manager, on vérifie qu'il gère bien le lieu
 
-        if (userService.hasRoleManager(principal)
+        if (userService.hasRoleAdmin(principal)
+                && !userPlaceRepository.existsByUserIdAndPlaceId(dto.userId(), placeId)) {
+            throw new AccessDeniedExceptionCustom(
+                    "Accès refusé : L'utilisateur ne gére pas le lieu dans lequel vous souhaitez ajouter un court");
+        }
+        else if (userService.hasRoleManager(principal)
                 && !userPlaceRepository.existsByUserIdAndPlaceId(principal.getId(), placeId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Accès refusé");
+            throw new AccessDeniedExceptionCustom("Accès refusé : Vous ne gérez pas le lieu dans lequel vous souhaitez ajouter un court");
         }
 
         Court court = new Court();

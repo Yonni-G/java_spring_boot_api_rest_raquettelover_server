@@ -3,6 +3,7 @@ package com.yonni.raquettelover.service;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -96,7 +97,7 @@ public class PlaceServiceImpl implements PlaceService {
         List<Place> places;
 
         if (userService.hasRoleAdmin(principal)) {
-            places = placeRepository.findAll();
+            places = placeRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
         } else if (userService.hasRoleManager(principal)) {
             places = userPlaceRepository.findPlacesByUserId(principal.getId());
         } else {
@@ -108,10 +109,4 @@ public class PlaceServiceImpl implements PlaceService {
                 .map(PlaceMapper::toDto)
                 .toList();
     }
-
-    // public Optional<PlaceOutDto> getById(Long id) {
-    //     return placeRepository.findById(id)
-    //             .map(this::toDto);
-    // }
-
 }

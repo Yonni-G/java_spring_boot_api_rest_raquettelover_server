@@ -15,6 +15,6 @@ public interface UserPlaceRepository extends JpaRepository<UserPlace, PlaceUserI
     boolean existsByUserAndPlace(User user, Place place);
     boolean existsByUserIdAndPlaceId(Long userId, Long placeId);
     
-    @Query("SELECT up.place FROM UserPlace up WHERE up.user.id = :userId")
+    @Query("SELECT up.place FROM UserPlace up WHERE up.user.id = :userId ORDER BY up.createdAt DESC")
     List<Place> findPlacesByUserId(@Param("userId") Long userId);
 }
