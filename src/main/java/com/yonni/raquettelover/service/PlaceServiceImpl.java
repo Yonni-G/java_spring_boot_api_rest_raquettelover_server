@@ -1,22 +1,19 @@
 package com.yonni.raquettelover.service;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.yonni.raquettelover.dto.ApiResponse;
 import com.yonni.raquettelover.dto.PlaceInDto;
 import com.yonni.raquettelover.dto.PlaceOutDto;
 import com.yonni.raquettelover.entity.Place;
 import com.yonni.raquettelover.entity.User;
 import com.yonni.raquettelover.entity.UserPlace;
 import com.yonni.raquettelover.exception.AccessDeniedExceptionCustom;
+import com.yonni.raquettelover.exception.NotUniqueExceptionCustom;
 import com.yonni.raquettelover.mapper.PlaceMapper;
 import com.yonni.raquettelover.repository.PlaceRepository;
 import com.yonni.raquettelover.repository.UserPlaceRepository;
@@ -41,19 +38,28 @@ public class PlaceServiceImpl implements PlaceService {
 
         // un admin peut créer un lieu pour un autre utilisateur
         // mais un manager ne le peut que pour lui-même
-
         CustomUserDetails principal = SecurityUtils.getCurrentUser();
         if (userService.hasRoleManager(principal)) {
-            if(!dto.userId().equals(principal.getId())) {
+            if (!dto.userId().equals(principal.getId())) {
                 // on envoit une response entity avec une response error
-                throw new AccessDeniedExceptionCustom("Accès refusé : Vous ne pas créer un lieu pour quelqu'un d'autre que vous");
+                throw new AccessDeniedExceptionCustom(
+                        "Accès refusé : Vous ne pas créer un lieu pour quelqu'un d'autre que vous");
             }
         }
+
+        placeRepository.findByCodeLieu(dto.codeLieu())
+                .ifPresent(place -> {
+                    throw new NotUniqueExceptionCustom(
+                            "codeLieu",
+                            "Veuillez choisir un autre nom pour votre Code Lieu");
+                });
+
         // utilisateur
         User user = userRepository.findById(dto.userId())
-                .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
+                .orElseThrow(() -> new EntityNotFoundException("Utilisateur introuvable"));
 
         Place place = new Place();
+        place.setCodeLieu(dto.codeLieu());
         place.setName(dto.name());
         place.setAddress(dto.address());
         Place placeAdded = placeRepository.save(place);
@@ -66,7 +72,6 @@ public class PlaceServiceImpl implements PlaceService {
 
         // un admin peut modifier un lieu pour un autre utilisateur
         // mais un manager ne le peut que pour lui-même
-
         CustomUserDetails principal = SecurityUtils.getCurrentUser();
         if (userService.hasRoleManager(principal)) {
             if (!dto.userId().equals(principal.getId())) {
@@ -82,8 +87,8 @@ public class PlaceServiceImpl implements PlaceService {
         // On va chercher la Place
         Place place = placeRepository.findById(
                 placeId)
-                 .orElseThrow(() -> new EntityNotFoundException("Place introuvable"));
-        
+                .orElseThrow(() -> new EntityNotFoundException("Place introuvable"));
+
         place.setName(dto.name());
         place.setAddress(dto.address());
         Place placeAdded = placeRepository.save(place);

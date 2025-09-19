@@ -6,5 +6,6 @@ import com.yonni.raquettelover.dto.CourtInDto;
 
 @Service
 public interface CourtService {
-    public void createCourt(CourtInDto dto, Long placId);
+    void createCourt(CourtInDto dto, Long placeId);    
+    void updateCourt(CourtInDto dto, Long placeId, Long courtId);
 }

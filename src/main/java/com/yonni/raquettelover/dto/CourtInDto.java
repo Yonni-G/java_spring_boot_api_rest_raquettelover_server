@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public record CourtInDto(
+                
         @NotBlank(message = "Le nom est obligatoire")
         String name,
 

@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.yonni.raquettelover.dto.ApiResponse;
-import com.yonni.raquettelover.dto.ParticipationGuestDto;
 import com.yonni.raquettelover.dto.ParticipationPlayerDto;
 import com.yonni.raquettelover.service.ParticipationService;
 

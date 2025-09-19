@@ -18,7 +18,11 @@ public class Place {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
+    @Column(nullable = false)
+    private String codeLieu;
+    @Column(nullable = false)
     private String name;
+    @Column(nullable = false)
     private String address;
 
     @OneToMany(mappedBy = "place", cascade = CascadeType.ALL, orphanRemoval = true)

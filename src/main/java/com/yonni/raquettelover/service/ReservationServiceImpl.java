@@ -1,5 +1,6 @@
 package com.yonni.raquettelover.service;
 
+import java.nio.file.AccessDeniedException;
 import java.util.Optional;
 
 import com.yonni.raquettelover.dto.ParticipationGuestDto;
@@ -12,6 +13,7 @@ import com.yonni.raquettelover.dto.ReservationDto;
 import com.yonni.raquettelover.entity.Court;
 import com.yonni.raquettelover.entity.Reservation;
 import com.yonni.raquettelover.entity.User;
+import com.yonni.raquettelover.exception.AccessDeniedExceptionCustom;
 import com.yonni.raquettelover.repository.CourtRepository;
 import com.yonni.raquettelover.repository.ReservationRepository;
 import com.yonni.raquettelover.repository.UserPlaceRepository;
@@ -19,6 +21,7 @@ import com.yonni.raquettelover.repository.UserRepository;
 import com.yonni.raquettelover.security.CustomUserDetails;
 import com.yonni.raquettelover.security.SecurityUtils;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -37,7 +40,7 @@ public class ReservationServiceImpl implements ReservationService {
 
         Optional<Court> courtOpt = courtRepository.findById(dto.courtId());
         if (courtOpt.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Court non trouvé");
+            throw new EntityNotFoundException("Court non trouvé");
         }
 
         CustomUserDetails principal = SecurityUtils.getCurrentUser();
@@ -54,16 +57,16 @@ public class ReservationServiceImpl implements ReservationService {
             boolean isManagerOfCourt = userPlaceRepository.existsByUserIdAndPlaceId(
                     principal.getId(), courtOpt.get().getPlace().getId());
             if (!isManagerOfCourt) {
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Accès refusé : vous ne gérez pas ce terrain");
+                throw new AccessDeniedExceptionCustom("Accès refusé : vous ne gérez pas ce terrain");
             }
         } else {
             // ni le joueur lui-même, ni un admin, ni un manager
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Accès refusé");
+            throw new AccessDeniedExceptionCustom("Accès refusé : vous ne gérez pas ce terrain");
         }
 
         // on vérifie que l'utilisateur bénéficiaire de la réservation existe
         User user = userRepository.findById(dto.userId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Utilisateur non trouvé"));
+                .orElseThrow(() -> new EntityNotFoundException("Utilisateur non trouvé"));
 
         Reservation reservation = new Reservation();
         reservation.setUser(user);

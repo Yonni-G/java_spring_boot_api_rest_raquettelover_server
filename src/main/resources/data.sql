@@ -5,7 +5,7 @@
 -- Data for Name: places; Type: TABLE DATA; Schema: public; Owner: raquettelover
 --
 
-INSERT INTO public.places VALUES ('2025-09-12 09:59:54.42754', 1, '2025-09-12 09:59:54.42754', 'Adresse à Pornic', 'Maison');
+INSERT INTO public.places VALUES ('2025-09-12 09:59:54.42754', 1, '2025-09-12 09:59:54.42754', 'Adresse à Pornic', 'artligne', 'Maison');
 
 
 --

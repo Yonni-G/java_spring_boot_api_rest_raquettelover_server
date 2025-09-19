@@ -1,6 +1,5 @@
 package com.yonni.raquettelover.controller;
 
-import com.yonni.raquettelover.service.ParticipationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;

@@ -5,6 +5,7 @@ import java.util.List;
 
 public record PlaceOutDto(
         Long id,
+        String codeLieu,
         String name,
         String address,
         LocalDateTime createdAt,

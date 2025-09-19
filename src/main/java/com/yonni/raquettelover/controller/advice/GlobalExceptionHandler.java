@@ -3,6 +3,7 @@ package com.yonni.raquettelover.controller.advice;
 import com.yonni.raquettelover.dto.ApiError;
 import com.yonni.raquettelover.dto.ApiResponse;
 import com.yonni.raquettelover.exception.AccessDeniedExceptionCustom;
+import com.yonni.raquettelover.exception.NotUniqueExceptionCustom;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,11 +35,19 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(ApiResponse.error(apiError));
     }
 
-    // exceptions Access denied
+    // exceptions Access Denied
     @ExceptionHandler(AccessDeniedExceptionCustom.class)
     public ResponseEntity<ApiResponse<Object>> handleAccessDenied(AccessDeniedExceptionCustom ex) {
         ApiError apiError = new ApiError("FORBIDDEN", ex.getMessage());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.error(apiError));
+    }
+
+    // exceptions Not Unique
+    @ExceptionHandler(NotUniqueExceptionCustom.class)
+    public ResponseEntity<ApiResponse<Object>> handleNotUnique(NotUniqueExceptionCustom ex) {
+        ApiError.FieldError fieldError = new ApiError.FieldError(ex.getFieldName(), ex.getMessage());
+        ApiError apiError = new ApiError("EVER_TAKEN", ex.getMessage(), Collections.singletonList(fieldError));
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.error(apiError));
     }
 
     // 🔸 Gestion des autres erreurs globales

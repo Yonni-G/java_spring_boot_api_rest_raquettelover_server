@@ -19,6 +19,7 @@ public class PlaceMapper {
 
         return new PlaceOutDto(
                 place.getId(),
+                place.getCodeLieu(),
                 place.getName(),
                 place.getAddress(),
                 place.getCreatedAt(),

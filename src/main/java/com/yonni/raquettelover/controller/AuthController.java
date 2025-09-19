@@ -1,5 +1,25 @@
 package com.yonni.raquettelover.controller;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.yonni.raquettelover.dto.ApiError;
 import com.yonni.raquettelover.dto.ApiResponse;
 import com.yonni.raquettelover.dto.UserDto;
@@ -10,20 +30,9 @@ import com.yonni.raquettelover.repository.UserRepository;
 import com.yonni.raquettelover.security.CustomUserDetails;
 import com.yonni.raquettelover.security.JwtUtil;
 import com.yonni.raquettelover.security.ValidationUtil;
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.*;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.*;
 
 @RestController
 @RequestMapping("/auth")
@@ -85,7 +94,7 @@ public class AuthController {
         if (userRepository.existsByUsername(user.getUsername())) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(ApiResponse.error(new ApiError("USERNAME_TAKEN",
-                            "Erreur : cette adresse email est déjà utilisée.")));
+                            "Erreur : cette adresse email est déjà utilisée.", Collections.singletonList(new ApiError.FieldError("username", "Veuillez choisir une autre adresse email")))));
         }
 
         try {
@@ -105,12 +114,6 @@ public class AuthController {
                 Role managerRole = roleRepository.findByName("ROLE_MANAGER")
                         .orElseThrow(() -> new RuntimeException("Le rôle ROLE_MANAGER est introuvable."));
                 newUser.getRoles().add(managerRole);
-            }
-            // A SUPPRIMER EN PRODUCTION : Si un rôle est spécifié dans l'URL, on tente de l'ajouter
-            if (roleName != null && roleName.equalsIgnoreCase("admin")) {
-                Role adminRole = roleRepository.findByName("ROLE_ADMIN")
-                        .orElseThrow(() -> new RuntimeException("Le rôle ROLE_ADMIN est introuvable."));
-                newUser.getRoles().add(adminRole);
             }
 
             userRepository.save(newUser);
