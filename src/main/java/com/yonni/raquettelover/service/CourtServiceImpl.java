@@ -1,9 +1,14 @@
 package com.yonni.raquettelover.service;
 
+import java.util.Optional;
+
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.yonni.raquettelover.dto.ApiError;
+import com.yonni.raquettelover.dto.ApiResponse;
 import com.yonni.raquettelover.dto.CourtInDto;
 import com.yonni.raquettelover.entity.Court;
 import com.yonni.raquettelover.entity.Place;
@@ -61,8 +66,13 @@ public class CourtServiceImpl implements CourtService {
     public void updateCourt(CourtInDto dto, Long placeId, Long courtId) {
         CustomUserDetails principal = SecurityUtils.getCurrentUser();
 
-        Place place = placeRepository.findById(placeId)
-                .orElseThrow(() -> new EntityNotFoundException("Lieu non trouvé"));
+        Optional<Court> court = courtRepository.findById(courtId);
+
+        if (court.isEmpty() || !court.get().getPlace().getId().equals(placeId)) {
+            // Soit le court n’existe pas, soit il n’appartient pas à la place
+            throw new EntityNotFoundException("Terrain non trouvé pour ce lieu");
+        }
+        
 
         // seuls les admins ou managers du lieu peuvent modifier un terrain
         // si l'utilisateur est admin, on vérifie que le dto.userId() est bien
@@ -79,14 +89,11 @@ public class CourtServiceImpl implements CourtService {
                     "Accès refusé : Vous ne gérez pas le lieu dans lequel vous souhaitez modifier un court");
         }
 
-        Court court = new Court();
-        court.setName(dto.name());
-        court.setDescription(dto.description());
-        court.setType(dto.type());
-        // on associe le terrain au lieu
-        court.setPlace(place);
+        court.get().setName(dto.name());
+        court.get().setDescription(dto.description());
+        court.get().setType(dto.type());
 
-        courtRepository.save(court);
+        courtRepository.save(court.get());
     }
 
 }
