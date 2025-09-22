@@ -28,6 +28,7 @@ import com.yonni.raquettelover.service.PlaceService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+
 @RestController
 @RequestMapping("/place") // Sans /api/v1, car context-path déjà /api/v1
 @RequiredArgsConstructor
@@ -64,7 +65,7 @@ public class PlaceController {
         // retourner 204 No Content pour indiquer succès sans corps
         return ResponseEntity.ok().body(ApiResponse.success(null, "Modifications enregistrées avec succès"));
     }
-
+    
     // recupère la liste des lieux de l'utilisateur
     // (pour un admin, ce sera tous les lieux)
     @GetMapping

@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,9 +23,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.yonni.raquettelover.dto.ApiError;
 import com.yonni.raquettelover.dto.ApiResponse;
-import com.yonni.raquettelover.dto.UserDto;
+import com.yonni.raquettelover.dto.UserSignInDto;
+import com.yonni.raquettelover.dto.UserSignUpDto;
+import com.yonni.raquettelover.entity.Place;
 import com.yonni.raquettelover.entity.Role;
 import com.yonni.raquettelover.entity.User;
+import com.yonni.raquettelover.repository.PlaceRepository;
 import com.yonni.raquettelover.repository.RoleRepository;
 import com.yonni.raquettelover.repository.UserRepository;
 import com.yonni.raquettelover.security.CustomUserDetails;
@@ -41,12 +45,14 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
+    private final PlaceRepository placeRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder encoder;
     private final JwtUtil jwtUtils;
 
     @PostMapping("/signin")
-    public ResponseEntity<ApiResponse<?>> authenticateUser(@Valid @RequestBody UserDto userDto, BindingResult bindingResult) {
+    public ResponseEntity<ApiResponse<?>> authenticateUser(@Valid @RequestBody UserSignInDto userDto,
+            BindingResult bindingResult) {
 
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest()
@@ -55,14 +61,13 @@ public class AuthController {
 
         try {
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(userDto.username(), userDto.password())
-            );
+                    new UsernamePasswordAuthenticationToken(userDto.username(), userDto.password()));
 
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
             List<String> roles = userDetails.getAuthorities()
-            .stream()
-            .map(GrantedAuthority::getAuthority)
-            .toList();
+                    .stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .toList();
 
             // dans la charge utile, on met le username comme sujet ainsi que les roles
             String jwtToken = jwtUtils.generateToken(userDetails.getUsername(), roles, userDetails.getId());
@@ -83,34 +88,51 @@ public class AuthController {
         }
     }
 
-    @PostMapping({"/signup", "/signup/{roleName}"})
-    public ResponseEntity<ApiResponse<?>> registerUser(@PathVariable(required = false) String roleName, @Valid @RequestBody User user, BindingResult bindingResult) {
+    @PostMapping({ "/signup/{signUpAs}" })
+    public ResponseEntity<ApiResponse<?>> registerUser(@PathVariable String signUpAs, @Valid @RequestBody UserSignUpDto dto,
+            BindingResult bindingResult) {
 
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest()
                     .body(ApiResponse.error(ValidationUtil.buildValidationError(bindingResult)));
         }
 
-        if (userRepository.existsByUsername(user.getUsername())) {
+        if (userRepository.existsByUsername(dto.username())) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(ApiResponse.error(new ApiError("USERNAME_TAKEN",
-                            "Erreur : cette adresse email est déjà utilisée.", Collections.singletonList(new ApiError.FieldError("username", "Veuillez choisir une autre adresse email")))));
+                            "Erreur : cette adresse email est déjà utilisée.", Collections.singletonList(
+                                    new ApiError.FieldError("username", "Veuillez choisir une autre adresse email")))));
         }
 
         try {
+
             User newUser = new User();
-            newUser.setUsername(user.getUsername());
-            newUser.setPassword(encoder.encode(user.getPassword()));
+
+            // si on a un placeId, on vérifiz qu'il existe
+            if (dto.placeId() != null) {
+                Optional<Place> place = placeRepository.findById(dto.placeId());
+                if (place.isEmpty()) {
+                    return ResponseEntity.status(HttpStatus.CONFLICT)
+                            .body(ApiResponse.error(new ApiError("NOT_FOUND",
+                                    "Erreur : ce Code Lieu n'existe pas", Collections.singletonList(
+                                            new ApiError.FieldError("codeLieu",
+                                                    "Veuillez vérifier ce Code Lieu")))));
+                }
+                newUser.setPlace(place.get());
+            }
+
+            newUser.setUsername(dto.username());
+            newUser.setPassword(encoder.encode(dto.password()));
 
             // Tout nouvel utilisateur doit avoir un prénom et un nom
-            newUser.setFirstName(user.getFirstName());
-            newUser.setLastName(user.getLastName());
+            newUser.setFirstName(dto.firstName());
+            newUser.setLastName(dto.lastName());
             // Attribution du rôle par défaut ROLE_USER
             Role joueurRole = roleRepository.findByName("ROLE_USER")
                     .orElseThrow(() -> new RuntimeException("Le rôle ROLE_USER est introuvable."));
             newUser.getRoles().add(joueurRole);
             // Si un rôle est spécifié dans l'URL, on tente de l'ajouter
-            if (roleName != null && roleName.equalsIgnoreCase("manager")) {
+            if (signUpAs != null && signUpAs.equalsIgnoreCase("manager")) {
                 Role managerRole = roleRepository.findByName("ROLE_MANAGER")
                         .orElseThrow(() -> new RuntimeException("Le rôle ROLE_MANAGER est introuvable."));
                 newUser.getRoles().add(managerRole);
@@ -121,7 +143,9 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(ApiResponse.success(null, "Utilisateur enregistré avec succès !"));
 
-        } catch (RuntimeException e) {
+        } catch (
+
+        RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ApiResponse.error(new ApiError("BAD_REQUEST", e.getMessage())));
         } catch (Exception e) {

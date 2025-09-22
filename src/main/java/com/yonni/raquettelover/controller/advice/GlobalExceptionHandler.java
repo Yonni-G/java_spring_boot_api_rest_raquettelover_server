@@ -1,9 +1,7 @@
 package com.yonni.raquettelover.controller.advice;
 
-import com.yonni.raquettelover.dto.ApiError;
-import com.yonni.raquettelover.dto.ApiResponse;
-import com.yonni.raquettelover.exception.AccessDeniedExceptionCustom;
-import com.yonni.raquettelover.exception.NotUniqueExceptionCustom;
+import java.util.Collections;
+import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,9 +9,12 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.yonni.raquettelover.dto.ApiError;
+import com.yonni.raquettelover.dto.ApiResponse;
+import com.yonni.raquettelover.exception.AccessDeniedExceptionCustom;
+import com.yonni.raquettelover.exception.NotUniqueExceptionCustom;
+
+import jakarta.persistence.EntityNotFoundException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -25,7 +26,7 @@ public class GlobalExceptionHandler {
                 .getFieldErrors()
                 .stream()
                 .map(err -> new ApiError.FieldError(err.getField(), err.getDefaultMessage()))
-                .collect(Collectors.toList());
+                .toList();
 
         ApiError apiError = new ApiError(
                 "INVALID_DATA",
@@ -48,6 +49,13 @@ public class GlobalExceptionHandler {
         ApiError.FieldError fieldError = new ApiError.FieldError(ex.getFieldName(), ex.getMessage());
         ApiError apiError = new ApiError("EVER_TAKEN", ex.getMessage(), Collections.singletonList(fieldError));
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.error(apiError));
+    }
+
+    // exceptions Not Found
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<ApiResponse<Object>> handleEntityNotFounde(EntityNotFoundException ex) {
+        ApiError apiError = new ApiError("NOT_FOUND", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(apiError));
     }
 
     // 🔸 Gestion des autres erreurs globales

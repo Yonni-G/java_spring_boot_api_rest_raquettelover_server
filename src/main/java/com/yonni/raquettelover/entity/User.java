@@ -21,25 +21,17 @@ public class User {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Pattern(
-            regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
-            message = "L'adresse email saisie n'est pas valide"
-    )
+    @ManyToOne
+    @JoinColumn(name = "place_id", nullable = true)
+    private Place place;
+
     @Column(unique = true)
     private String username;
 
-    @Pattern(
-            regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?/~]).{8,}$",
-            message = "Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial"
-    )
     private String password;
-
-    @NotBlank(message = "Le prénom ne peut pas être vide")
-    @Size(min = 2, max = 50, message = "Le prénom doit contenir entre 2 et 50 caractères")
+    
     private String firstName;
 
-    @NotBlank(message = "Le nom ne peut pas être vide")
-    @Size(min = 2, max = 50, message = "Le nom doit contenir entre 2 et 50 caractères")
     private String lastName;
 
     @ManyToMany(fetch = FetchType.EAGER)

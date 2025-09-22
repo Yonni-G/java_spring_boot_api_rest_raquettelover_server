@@ -1,11 +1,10 @@
 package com.yonni.raquettelover.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.yonni.raquettelover.dto.PlaceInDto;
 import com.yonni.raquettelover.dto.PlaceOutDto;
@@ -32,6 +31,11 @@ public class PlaceServiceImpl implements PlaceService {
     private final UserRepository userRepository;
     private final UserPlaceRepository userPlaceRepository;
     private final UserService userService;
+
+    @Override
+    public Place findByCodeLieu(String codeLieu) {
+        return placeRepository.findByCodeLieu(codeLieu).orElseThrow(() -> new EntityNotFoundException("Le Code Lieu que vous avez saisi n'existe pas"));
+    }
 
     @Override
     public void createPlace(PlaceInDto dto) {
@@ -91,6 +95,7 @@ public class PlaceServiceImpl implements PlaceService {
 
         place.setName(dto.name());
         place.setAddress(dto.address());
+        place.setCodeLieu(dto.codeLieu());
         Place placeAdded = placeRepository.save(place);
 
         userPlaceRepository.save(new UserPlace(user, placeAdded));
