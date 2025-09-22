@@ -18,10 +18,12 @@ public class Place {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String codeLieu;
+
     @Column(nullable = false)
     private String name;
+    
     @Column(nullable = false)
     private String address;
 

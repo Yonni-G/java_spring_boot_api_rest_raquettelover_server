@@ -55,7 +55,7 @@ public class PlaceServiceImpl implements PlaceService {
                 .ifPresent(place -> {
                     throw new NotUniqueExceptionCustom(
                             "codeLieu",
-                            "Veuillez choisir un autre nom pour votre Code Lieu");
+                            "Code Lieu déjà pris, veuillez choisir un autre nom pour votre Code Lieu");
                 });
 
         // utilisateur
@@ -84,6 +84,14 @@ public class PlaceServiceImpl implements PlaceService {
                         "Accès refusé : Vous ne pas modifier un lieu pour quelqu'un d'autre que vous");
             }
         }
+
+        placeRepository.findByCodeLieu(dto.codeLieu())
+                .ifPresent(place -> {
+                    throw new NotUniqueExceptionCustom(
+                            "codeLieu",
+                            "Code Lieu déjà pris, veuillez choisir un autre nom pour votre Code Lieu");
+                });
+                
         // utilisateur
         User user = userRepository.findById(dto.userId())
                 .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
