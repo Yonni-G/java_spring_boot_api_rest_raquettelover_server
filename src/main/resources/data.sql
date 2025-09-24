@@ -2,10 +2,12 @@
 -- PostgreSQL database dump
 --
 
+
+
 -- Dumped from database version 17.6
 -- Dumped by pg_dump version 17.6
 
--- Started on 2025-09-24 15:51:30
+-- Started on 2025-09-24 16:07:58
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -19,6 +21,41 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
+ALTER TABLE IF EXISTS ONLY public.courts DROP CONSTRAINT IF EXISTS fkst4xmub7kax4ut3uja8xor3ag;
+ALTER TABLE IF EXISTS ONLY public.users DROP CONSTRAINT IF EXISTS fko0lyr18alid21rkl0ay7y985k;
+ALTER TABLE IF EXISTS ONLY public.users_places DROP CONSTRAINT IF EXISTS fkn3fuuy7uo1m8xrn9n87mohe4t;
+ALTER TABLE IF EXISTS ONLY public.users_roles DROP CONSTRAINT IF EXISTS fkj6m8fwv7oqv74fcehir1a9ffy;
+ALTER TABLE IF EXISTS ONLY public.reservations DROP CONSTRAINT IF EXISTS fkfhyeea492li3rmcfehysgcphf;
+ALTER TABLE IF EXISTS ONLY public.users_places DROP CONSTRAINT IF EXISTS fkddoqy9fk6pjkehrvgrj823e5;
+ALTER TABLE IF EXISTS ONLY public.reservations DROP CONSTRAINT IF EXISTS fkb5g9io5h54iwl2inkno50ppln;
+ALTER TABLE IF EXISTS ONLY public.participations DROP CONSTRAINT IF EXISTS fk9uu5l63nqnclum0c4s10wal5j;
+ALTER TABLE IF EXISTS ONLY public.users_roles DROP CONSTRAINT IF EXISTS fk2o0jvgh89lemvvo17cbqvdxaa;
+ALTER TABLE IF EXISTS ONLY public.participations DROP CONSTRAINT IF EXISTS fk166yf958qjqf8uoslyuk9e19p;
+ALTER TABLE IF EXISTS ONLY public.users DROP CONSTRAINT IF EXISTS users_username_key;
+ALTER TABLE IF EXISTS ONLY public.users_roles DROP CONSTRAINT IF EXISTS users_roles_pkey;
+ALTER TABLE IF EXISTS ONLY public.users_places DROP CONSTRAINT IF EXISTS users_places_pkey;
+ALTER TABLE IF EXISTS ONLY public.users DROP CONSTRAINT IF EXISTS users_pkey;
+ALTER TABLE IF EXISTS ONLY public.places DROP CONSTRAINT IF EXISTS unique_code_lieu;
+ALTER TABLE IF EXISTS ONLY public.roles DROP CONSTRAINT IF EXISTS roles_pkey;
+ALTER TABLE IF EXISTS ONLY public.roles DROP CONSTRAINT IF EXISTS roles_name_key;
+ALTER TABLE IF EXISTS ONLY public.reservations DROP CONSTRAINT IF EXISTS reservations_pkey;
+ALTER TABLE IF EXISTS ONLY public.places DROP CONSTRAINT IF EXISTS places_pkey;
+ALTER TABLE IF EXISTS ONLY public.participations DROP CONSTRAINT IF EXISTS participations_pkey;
+ALTER TABLE IF EXISTS ONLY public.courts DROP CONSTRAINT IF EXISTS courts_pkey;
+DROP SEQUENCE IF EXISTS public.users_seq;
+DROP TABLE IF EXISTS public.users_roles;
+DROP TABLE IF EXISTS public.users_places;
+DROP TABLE IF EXISTS public.users;
+DROP SEQUENCE IF EXISTS public.roles_seq;
+DROP TABLE IF EXISTS public.roles;
+DROP SEQUENCE IF EXISTS public.reservations_seq;
+DROP TABLE IF EXISTS public.reservations;
+DROP SEQUENCE IF EXISTS public.places_seq;
+DROP TABLE IF EXISTS public.places;
+DROP SEQUENCE IF EXISTS public.participations_seq;
+DROP TABLE IF EXISTS public.participations;
+DROP SEQUENCE IF EXISTS public.courts_seq;
+DROP TABLE IF EXISTS public.courts;
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
@@ -586,10 +623,11 @@ ALTER TABLE ONLY public.courts
     ADD CONSTRAINT fkst4xmub7kax4ut3uja8xor3ag FOREIGN KEY (place_id) REFERENCES public.places(id);
 
 
--- Completed on 2025-09-24 15:51:30
+-- Completed on 2025-09-24 16:07:58
 
 --
 -- PostgreSQL database dump complete
 --
+
 
 
