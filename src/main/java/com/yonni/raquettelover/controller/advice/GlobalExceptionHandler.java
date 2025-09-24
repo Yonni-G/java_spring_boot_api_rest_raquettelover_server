@@ -61,7 +61,7 @@ public class GlobalExceptionHandler {
     // 🔸 Gestion des autres erreurs globales
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Object>> handleException(Exception ex) {
-        ApiError apiError = new ApiError("SERVER_ERROR", ex.getMessage());
+        ApiError apiError = new ApiError("SERVER_ERROR", "Une erreur est survenue côté serveur");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error(apiError));
     }
