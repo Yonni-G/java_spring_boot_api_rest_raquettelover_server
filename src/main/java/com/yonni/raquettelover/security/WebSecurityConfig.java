@@ -87,7 +87,7 @@ public class WebSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("https://yonni.com/raquettelover", "http://localhost:4200", "https://angular-raquettelover-client.onrender.com"));
+        configuration.setAllowedOrigins(Arrays.asList("https://yonni.com", "http://localhost:4200", "https://angular-raquettelover-client.onrender.com"));
         configuration.setAllowedHeaders(Arrays.asList("Origin", "Content-Type", "Accept"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
