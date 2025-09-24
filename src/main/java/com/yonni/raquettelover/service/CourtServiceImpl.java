@@ -82,7 +82,7 @@ public class CourtServiceImpl implements CourtService {
         if (userService.hasRoleAdmin(principal)
                 && !userPlaceRepository.existsByUserIdAndPlaceId(dto.userId(), placeId)) {
             throw new AccessDeniedExceptionCustom(
-                    "Accès refusé : L'utilisateur ne gére pas le lieu dans lequel vous souhaitez modfiier un court");
+                    "Accès refusé : L'utilisateur ne gére pas le lieu dans lequel vous souhaitez modifier un court");
         } else if (userService.hasRoleManager(principal)
                 && !userPlaceRepository.existsByUserIdAndPlaceId(principal.getId(), placeId)) {
             throw new AccessDeniedExceptionCustom(
