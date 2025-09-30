@@ -2,15 +2,17 @@ package com.yonni.raquettelover.service;
 
 import java.util.Optional;
 
-import com.yonni.raquettelover.dto.ParticipationPlayerDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.yonni.raquettelover.dto.ParticipationGuestDto;
+import com.yonni.raquettelover.dto.ParticipationPlayerDto;
 import com.yonni.raquettelover.entity.Participation;
 import com.yonni.raquettelover.entity.Reservation;
 import com.yonni.raquettelover.entity.User;
+import com.yonni.raquettelover.exception.AccessDeniedExceptionCustom;
+import com.yonni.raquettelover.exception.NotUniqueExceptionCustom;
 import com.yonni.raquettelover.repository.ParticipationRepository;
 import com.yonni.raquettelover.repository.ReservationRepository;
 import com.yonni.raquettelover.repository.UserPlaceRepository;
@@ -18,7 +20,7 @@ import com.yonni.raquettelover.repository.UserRepository;
 import com.yonni.raquettelover.security.CustomUserDetails;
 import com.yonni.raquettelover.security.SecurityUtils;
 
-import jakarta.validation.Valid;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -35,7 +37,7 @@ public class ParticipationServiceImpl implements ParticipationService {
 
         Optional<Reservation> reservationOpt = reservationRepository.findById(dto.reservationId());
         if (reservationOpt.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Participation non trouvée");
+            throw new EntityNotFoundException("Participation non trouvée");
         }
 
         CustomUserDetails principal = SecurityUtils.getCurrentUser();
@@ -53,21 +55,21 @@ public class ParticipationServiceImpl implements ParticipationService {
             boolean isManagerOfCourt = userPlaceRepository.existsByUserIdAndPlaceId(
                     principal.getId(), reservationOpt.get().getCourt().getPlace().getId());
             if (!isManagerOfCourt) {
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Accès refusé : vous ne gérez pas ce terrain");
+                throw new AccessDeniedExceptionCustom("Accès refusé : vous ne gérez pas ce terrain");
             }
         } else {
             // ni le joueur lui-même, ni un admin, ni un manager
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Accès refusé");
+            throw new AccessDeniedExceptionCustom("Accès refusé");
         }
 
         // on vérifie que l'utilisateur bénéficiaire de la réservation existe
         User user = userRepository.findById(dto.userId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Utilisateur non trouvé"));
+                .orElseThrow(() -> new EntityNotFoundException("Utilisateur non trouvé"));
 
 
         // on vérifie que l'utilisateur n'est pas déjà inscrit à cette réservation
         if(participationRepository.existsByReservationIdAndUserId(dto.reservationId(), dto.userId())){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Utilisateur déjà inscrit à cette réservation");
+            throw new NotUniqueExceptionCustom(null, "Utilisateur déjà inscrit à cette réservation");
         }
 
         // participation pour un utilisateur enregistré
@@ -83,7 +85,7 @@ public class ParticipationServiceImpl implements ParticipationService {
 
         Optional<Reservation> reservationOpt = reservationRepository.findById(dto.reservationId());
         if (reservationOpt.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Participation non trouvée");
+            throw new EntityNotFoundException("Participation non trouvée");
         }
 
         // participation pour un invité
@@ -91,7 +93,7 @@ public class ParticipationServiceImpl implements ParticipationService {
         participation.setReservation(reservationOpt.get());
         // on associe l'invité à l'utilisateur qui l'ajoute
         participation.setUser(userRepository.findById(dto.userId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Utilisateur non trouvé")));
+                .orElseThrow(() -> new EntityNotFoundException("Utilisateur non trouvé")));
 
         participation.setGuest(true);
         participation.setFirstName(dto.guest().firstName());

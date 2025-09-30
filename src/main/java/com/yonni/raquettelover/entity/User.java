@@ -21,10 +21,6 @@ public class User {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "place_id", nullable = true)
-    private Place place;
-
     @Column(unique = true)
     private String username;
 

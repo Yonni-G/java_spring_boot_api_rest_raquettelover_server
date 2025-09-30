@@ -94,7 +94,7 @@ public class PlaceServiceImpl implements PlaceService {
                 
         // utilisateur
         User user = userRepository.findById(dto.userId())
-                .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
+                .orElseThrow(() -> new EntityNotFoundException("Utilisateur introuvable"));
 
         // On va chercher la Place
         Place place = placeRepository.findById(
