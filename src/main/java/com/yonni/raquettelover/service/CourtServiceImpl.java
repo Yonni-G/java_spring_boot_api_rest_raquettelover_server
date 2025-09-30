@@ -2,13 +2,8 @@ package com.yonni.raquettelover.service;
 
 import java.util.Optional;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
-import com.yonni.raquettelover.dto.ApiError;
-import com.yonni.raquettelover.dto.ApiResponse;
 import com.yonni.raquettelover.dto.CourtInDto;
 import com.yonni.raquettelover.entity.Court;
 import com.yonni.raquettelover.entity.Place;
