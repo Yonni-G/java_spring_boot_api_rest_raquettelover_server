@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -36,12 +38,28 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(ApiResponse.error(apiError));
     }
 
-    // exceptions Access Denied
+    // exceptions Access Denied METIER
     @ExceptionHandler(AccessDeniedExceptionCustom.class)
     public ResponseEntity<ApiResponse<Object>> handleAccessDenied(AccessDeniedExceptionCustom ex) {
         ApiError apiError = new ApiError("FORBIDDEN", ex.getMessage());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.error(apiError));
     }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiResponse<Object>> handleSpringAccessDenied(
+            org.springframework.security.access.AccessDeniedException ex) {
+        ApiError apiError = new ApiError("FORBIDDEN", "Accès refusé");
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.error(apiError));
+    }
+
+    // exceptions AuthorizationDeniedException
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<ApiResponse<Object>> handleAuthorizationDeniedException(AuthorizationDeniedException ex) {
+        ApiError apiError = new ApiError("FORBIDDEN", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.error(apiError));
+    }
+
+    
 
     // exceptions Not Unique
     @ExceptionHandler(NotUniqueExceptionCustom.class)

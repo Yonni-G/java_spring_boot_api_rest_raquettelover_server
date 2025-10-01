@@ -80,6 +80,58 @@ public class CourtServiceTest {
     }
 
     @Test
+    public void testCreateCourt_ManagerUserNotManagingPlace_ShouldThrowAccessDeniedException() {
+        Long placeId = 1L;
+        Long principalId = 1L;
+
+        // Mock statique de SecurityUtils
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUser).thenReturn(principal);
+
+            when(placeRepository.findById(placeId)).thenReturn(Optional.of(new Place()));
+            when(userService.hasRoleManager(principal)).thenReturn(true);
+            when(principal.getId()).thenReturn(principalId);
+            when(userPlaceRepository.existsByUserIdAndPlaceId(principalId, placeId)).thenReturn(false);
+
+            AccessDeniedExceptionCustom ex = assertThrows(AccessDeniedExceptionCustom.class,
+                    () -> courtService.createCourt(dto, placeId));
+
+            assertTrue(ex.getMessage().contains("pas le lieu dans"));
+        }
+    }
+
+    @Test
+    public void testCreateCourt_ManagerUserSuccess() {
+        Long placeId = 1L;
+        Long principalId = 1L;
+
+        // Mock statique de SecurityUtils
+        try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
+            mockedSecurityUtils.when(SecurityUtils::getCurrentUser).thenReturn(principal);
+
+            Place place = new Place();
+            place.setId(placeId); // Ajoute cette ligne
+            when(placeRepository.findById(placeId)).thenReturn(Optional.of(place));
+
+            when(userService.hasRoleManager(principal)).thenReturn(true);
+            when(principal.getId()).thenReturn(principalId);
+            when(userPlaceRepository.existsByUserIdAndPlaceId(principalId, placeId)).thenReturn(true);
+
+            when(dto.name()).thenReturn("New Court Name");
+            when(dto.description()).thenReturn("New Description");
+            when(dto.type()).thenReturn(CourtType.PADEL);
+
+            courtService.createCourt(dto, placeId);
+
+            verify(courtRepository).save(argThat(courtToSave -> "New Court Name".equals(courtToSave.getName()) &&
+                    "New Description".equals(courtToSave.getDescription()) &&
+                    CourtType.PADEL.equals(courtToSave.getType()) &&
+                    courtToSave.getPlace() != null &&
+                    courtToSave.getPlace().getId().equals(placeId)));
+        }
+    }
+
+    @Test
     public void testCreateCourt_PlaceNotFound_ShouldThrowEntityNotFoundException() {
         Long placeId = 1L;
 
