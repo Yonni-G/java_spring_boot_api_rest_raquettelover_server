@@ -67,10 +67,7 @@ public class PlaceControllerTest {
     public void testCreatePlace_Forbidden() throws Exception {
         String jsonPayload = """
                 {
-                    "codeLieu": "test",
-                    "name": "Place Name",
-                    "address": "Some address",
-                    "userId": 1
+
                 }
                 """;
 
