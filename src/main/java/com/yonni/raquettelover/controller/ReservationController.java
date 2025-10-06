@@ -25,7 +25,7 @@ public class ReservationController {
     private final ReservationService reservationService;
 
     @PostMapping
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasRole('USER') or hasRole('MANAGER') or hasRole('ADMIN')")
     public ResponseEntity<?> addReservation(
             @RequestBody @Valid ReservationDto dto,
             BindingResult bindingResult) {

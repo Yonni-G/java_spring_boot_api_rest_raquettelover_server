@@ -1,6 +1,7 @@
 package com.yonni.raquettelover.service;
 
 import java.nio.file.AccessDeniedException;
+import java.util.List;
 import java.util.Optional;
 
 import com.yonni.raquettelover.dto.ParticipationGuestDto;
@@ -14,6 +15,7 @@ import com.yonni.raquettelover.entity.Court;
 import com.yonni.raquettelover.entity.Reservation;
 import com.yonni.raquettelover.entity.User;
 import com.yonni.raquettelover.exception.AccessDeniedExceptionCustom;
+import com.yonni.raquettelover.exception.NotUniqueExceptionCustom;
 import com.yonni.raquettelover.repository.CourtRepository;
 import com.yonni.raquettelover.repository.ReservationRepository;
 import com.yonni.raquettelover.repository.UserPlaceRepository;
@@ -38,10 +40,8 @@ public class ReservationServiceImpl implements ReservationService {
     @Override
     public void addReservation(ReservationDto dto) {
 
-        Optional<Court> courtOpt = courtRepository.findById(dto.courtId());
-        if (courtOpt.isEmpty()) {
-            throw new EntityNotFoundException("Court non trouvé");
-        }
+        Court court = courtRepository.findById(dto.courtId())
+                .orElseThrow(() -> new EntityNotFoundException("Court non trouvé"));
 
         CustomUserDetails principal = SecurityUtils.getCurrentUser();
         // un USER ne peut créer une réservation que pour lui-même
@@ -55,22 +55,27 @@ public class ReservationServiceImpl implements ReservationService {
         } else if (userService.hasRoleManager(principal)) {
             // un manager peut créer une réservation pour n'importe quel utilisateur mais que pour un terrain qu'il gère
             boolean isManagerOfCourt = userPlaceRepository.existsByUserIdAndPlaceId(
-                    principal.getId(), courtOpt.get().getPlace().getId());
+                    principal.getId(), court.getPlace().getId());
             if (!isManagerOfCourt) {
                 throw new AccessDeniedExceptionCustom("Accès refusé : vous ne gérez pas ce terrain");
             }
         } else {
             // ni le joueur lui-même, ni un admin, ni un manager
-            throw new AccessDeniedExceptionCustom("Accès refusé : vous ne gérez pas ce terrain");
+            throw new AccessDeniedExceptionCustom("Accès refusé : vous n'avez pas les droits suffisants pour effectuer cette action");
         }
 
         // on vérifie que l'utilisateur bénéficiaire de la réservation existe
         User user = userRepository.findById(dto.userId())
                 .orElseThrow(() -> new EntityNotFoundException("Utilisateur non trouvé"));
 
+        // on vérifie que cette réservation est possible sur ce court sur le créneau demandé
+        if (reservationRepository.existsByCourtAndReservationAtAndStartHourBetween(court, dto.reservationAt(), dto.startHour(), dto.startHour() + dto.duration() - 1)) {
+            throw new NotUniqueExceptionCustom(null, "Une réservation sur ce créneau existe déjà");
+        }
+
         Reservation reservation = new Reservation();
         reservation.setUser(user);
-        reservation.setCourt(courtOpt.get());
+        reservation.setCourt(court);
         reservation.setReservationAt(dto.reservationAt());
         reservation.setStartHour(dto.startHour());
         reservation.setDuration(dto.duration());

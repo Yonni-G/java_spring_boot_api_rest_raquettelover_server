@@ -6,5 +6,5 @@ import com.yonni.raquettelover.dto.ReservationDto;
 
 @Service
 public interface ReservationService {
-    public void addReservation(ReservationDto dto);
+    public void addReservation(ReservationDto dto);    
 }

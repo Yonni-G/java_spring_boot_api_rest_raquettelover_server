@@ -40,14 +40,27 @@ public class PlaceServiceImpl implements PlaceService {
     @Override
     public void createPlace(PlaceInDto dto) {
 
-        // un admin peut créer un lieu pour un autre utilisateur
+        // un admin peut créer un lieu pour un autre utilisateur si celui-ci est manager
         // mais un manager ne le peut que pour lui-même
         CustomUserDetails principal = SecurityUtils.getCurrentUser();
-        if (userService.hasRoleManager(principal)) {
+
+        // utilisateur
+        User user = userRepository.findById(dto.userId())
+                .orElseThrow(() -> new EntityNotFoundException("Utilisateur introuvable"));
+
+        if (userService.hasRoleAdmin(principal)) {
+            boolean isManager = user.getRoles().stream()
+                .anyMatch(role -> "ROLE_MANAGER".equals(role.getName()));
+            if(!isManager) {
+                throw new AccessDeniedExceptionCustom(
+                        "Accès refusé : Vous ne pouvez créer un lieu que pour un manager");
+            }
+        }
+        else if (userService.hasRoleManager(principal)) {
             if (!dto.userId().equals(principal.getId())) {
                 // on envoit une response entity avec une response error
                 throw new AccessDeniedExceptionCustom(
-                        "Accès refusé : Vous ne pas créer un lieu pour quelqu'un d'autre que vous");
+                        "Accès refusé : Vous ne pouvez pas créer un lieu pour quelqu'un d'autre que vous");
             }
         }
 
@@ -58,9 +71,7 @@ public class PlaceServiceImpl implements PlaceService {
                             "Code Lieu déjà pris, veuillez choisir un autre nom pour votre Code Lieu");
                 });
 
-        // utilisateur
-        User user = userRepository.findById(dto.userId())
-                .orElseThrow(() -> new EntityNotFoundException("Utilisateur introuvable"));
+        
 
         Place place = new Place();
         place.setCodeLieu(dto.codeLieu());
