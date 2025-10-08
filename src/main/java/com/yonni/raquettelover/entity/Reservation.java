@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -21,9 +23,11 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @Entity
 @Table(name = "reservations")
@@ -31,6 +35,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(exclude = "participations")
 public class Reservation {
 
     @Id
@@ -50,20 +55,14 @@ public class Reservation {
     // cascade = CascadeType.ALL pour que les opérations sur Reservation se répercutent sur Participation
     // orphanRemoval = true pour supprimer les participations orphelines
     @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private Set<Participation> participations = new HashSet<>();
 
-    @NotNull(message = "La date de réservation est obligatoire")
-    private LocalDate reservationAt;
+    @Column(nullable = false)
+    private LocalDateTime startTime;
 
-    @NotNull(message = "L'heure de début est obligatoire")
-    @Min(value = 0, message = "L'heure de début doit être comprise entre 0 et 23")
-    @Max(value = 23, message = "L'heure de début doit être comprise entre 0 et 23")
-    private Integer startHour;
-
-    @NotNull(message = "La durée est obligatoire")
-    @Min(value = 1, message = "La durée minimale est d'une heure")
-    @Max(value = 24, message = "La durée maximale est de 24 heures")
-    private Integer duration;
+    @Column(nullable = false)
+    private LocalDateTime endTime;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

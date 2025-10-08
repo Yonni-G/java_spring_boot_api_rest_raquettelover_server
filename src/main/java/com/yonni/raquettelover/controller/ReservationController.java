@@ -11,7 +11,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.yonni.raquettelover.dto.ApiResponse;
-import com.yonni.raquettelover.dto.ReservationDto;
+import com.yonni.raquettelover.dto.ReservationInDto;
+import com.yonni.raquettelover.security.ValidationUtil;
 import com.yonni.raquettelover.service.ReservationService;
 
 import jakarta.validation.Valid;
@@ -27,11 +28,12 @@ public class ReservationController {
     @PostMapping
     @PreAuthorize("hasRole('USER') or hasRole('MANAGER') or hasRole('ADMIN')")
     public ResponseEntity<?> addReservation(
-            @RequestBody @Valid ReservationDto dto,
+            @RequestBody @Valid ReservationInDto dto,
             BindingResult bindingResult) {
 
         if (bindingResult.hasErrors()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Données invalides");
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error(ValidationUtil.buildValidationError(bindingResult)));
         }
 
         // on ajoute la réservation

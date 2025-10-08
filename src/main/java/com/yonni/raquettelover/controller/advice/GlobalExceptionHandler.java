@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.yonni.raquettelover.dto.ApiError;
 import com.yonni.raquettelover.dto.ApiResponse;
 import com.yonni.raquettelover.exception.AccessDeniedExceptionCustom;
+import com.yonni.raquettelover.exception.IllegalArgumentExceptionCustom;
 import com.yonni.raquettelover.exception.NotUniqueExceptionCustom;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -71,9 +72,16 @@ public class GlobalExceptionHandler {
 
     // exceptions Not Found
     @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<ApiResponse<Object>> handleEntityNotFounde(EntityNotFoundException ex) {
+    public ResponseEntity<ApiResponse<Object>> handleEntityNotFound(EntityNotFoundException ex) {
         ApiError apiError = new ApiError("NOT_FOUND", ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(apiError));
+    }
+
+    @ExceptionHandler(IllegalArgumentExceptionCustom.class)
+    public ResponseEntity<ApiResponse<Object>> handleIllegalArgumentException(IllegalArgumentExceptionCustom ex) {
+        ApiError.FieldError fieldError = new ApiError.FieldError(ex.getFieldName(), ex.getMessage());
+        ApiError apiError = new ApiError("IILEGAL_ARGUMENT", ex.getMessage(), Collections.singletonList(fieldError));
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(apiError));
     }
 
     // 🔸 Gestion des autres erreurs globales
